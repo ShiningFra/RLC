@@ -35,11 +35,13 @@ def random_vector(k):
     return np.random.randint(1, FIELD_SIZE, size=k, dtype=int)
 
 def encode_packet(packets, g):
-    # packets: list of bytearrays, g: numpy array of coefficients
     coded = np.zeros(PACKET_SIZE, dtype=int)
     for i, pkt in enumerate(packets):
-        coded ^= g[i] * np.frombuffer(pkt, dtype=np.uint8)
-    return coded.astype(np.uint8).tobytes()
+        pkt_array = np.frombuffer(pkt, dtype=np.uint8)
+        coded = [gf_add(c, gf_mul(g[i], x)) for c, x in zip(coded, pkt_array)]
+    return bytes(coded)
+
+
 
 # Lire et découper le fichier
 def load_file(path):
@@ -69,6 +71,7 @@ def connect():
 @sio.on('ack', namespace='/rlc')
 def on_ack(data=None):
     print('🔔 ACK reçu, arrêt de l\'envoi.')
+    th.stop()
     sio.disconnect()
 
 def send_loop(packets):
@@ -109,5 +112,6 @@ if __name__ == '__main__':
     #sio.emit('metadata', { 'size': os.path.getsize(path), 'num_packets': len(packets) })
 
     # Démarrer l’envoi dans un thread pour pouvoir recevoir l’ACK
-    threading.Thread(target=send_loop, args=(packets,), daemon=True).start()
+    th = threading.Thread(target=send_loop, args=(packets,), daemon=True)
+    th.start()
     sio.wait()
