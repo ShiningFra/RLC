@@ -6,6 +6,9 @@ import numpy as np
 import threading
 import time
 
+stop_event = threading.Event()
+
+
 # Configuration
 SERVER_URL = 'http://localhost:3000/rlc'
 PACKET_SIZE = 1024      # taille d'un paquet original en octets
@@ -71,7 +74,7 @@ def connect():
 @sio.on('ack', namespace='/rlc')
 def on_ack(data=None):
     print('🔔 ACK reçu, arrêt de l\'envoi.')
-    th.stop()
+    stop_event.set()
     sio.disconnect()
 
 def send_loop(packets):
@@ -79,6 +82,9 @@ def send_loop(packets):
     K = len(packets)
     sent = 0
     while sio.connected:
+        if stop_event.is_set():
+            print("🛑 Envoi interrompu par ACK.")
+            break
         g = random_vector(K)
         coded = encode_packet(packets, g)
         pkt = {

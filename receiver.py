@@ -105,6 +105,8 @@ def on_packet(pkt):
                 print('📁 Fichier reconstruit en reconstructed.bin')
                 # ACK pour stopper le sender
                 sio.emit('ack', namespace='/rlc')
+                print("📤 ACK envoyé au serveur via Socket.IO")
+
                 sio.disconnect()
 
 if __name__ == '__main__':
