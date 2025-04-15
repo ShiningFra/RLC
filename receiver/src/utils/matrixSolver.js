@@ -1,4 +1,4 @@
-import { add, mul } from '../../sender/src/utils/gfArithmetic';
+import { add, mul } from './gfArithmetic';
 
 export function gaussJordanSolve(A, B, fieldSize) {
   const n = A.length, k = A[0].length;
@@ -29,6 +29,6 @@ export function gaussJordanSolve(A, B, fieldSize) {
 }
 
 function invElt(a) {
-  const { LOG, EXP } = require('../../sender/src/utils/gfArithmetic');
+  const { LOG, EXP } = require('./gfArithmetic');
   return EXP[255 - LOG[a]];
 }
