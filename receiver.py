@@ -4,6 +4,8 @@ import json
 import time
 import logging
 import traceback
+import os
+import sys
 
 # Configuration RLC-AM
 SN_MODULUS = 1024
@@ -25,13 +27,17 @@ class RLCReceiver:
             self.buffer = {}
             self.out_sdu = bytearray()
             self.lock = threading.Lock()
+            self.metadata_received = False
+            self.filename = None
+            self.extension = None
+
             # Annonce
             self.sock.sendall(json.dumps({'type':'HELLO','role':'RECEIVER'}).encode())
             threading.Thread(target=self._receive_loop, daemon=True).start()
         except Exception:
             logging.error("Failed to connect or start receive loop")
             traceback.print_exc()
-            raise
+            sys.exit(1)
 
     def _receive_loop(self):
         try:
@@ -50,6 +56,8 @@ class RLCReceiver:
         except Exception:
             logging.error("Exception in receive loop")
             traceback.print_exc()
+        finally:
+            self.sock.close()
 
     def _handle_data(self, msg):
         sn = msg['header']['sn']
@@ -62,7 +70,6 @@ class RLCReceiver:
             else:
                 self._deliver(msg)
                 self.expected_sn = (self.expected_sn + 1) % SN_MODULUS
-                # Traiter les buffered
                 while self.expected_sn in self.buffer:
                     buffered = self.buffer.pop(self.expected_sn)
                     self._deliver(buffered)
@@ -70,17 +77,40 @@ class RLCReceiver:
             self._send_status()
 
     def _deliver(self, msg):
+        # Récupère les données
         payload = bytes.fromhex(msg['payload'])
         self.out_sdu.extend(payload)
-        fi = msg['header']['fi']
-        logging.info(f"Delivered SN {msg['header']['sn']} payload {len(payload)} bytes")
-        if fi.endswith('10'):
-            logging.info(f"Complete SDU reçu ({len(self.out_sdu)} bytes): {self.out_sdu}")
+        logging.info(f"Delivered SN {msg['header']['sn']} payload chunk ({len(payload)} bytes)")
+        # Si fin de SDU
+        if msg['header']['fi'].endswith('10'):
+            if not self.metadata_received:
+                # Premier SDU = métadonnées
+                meta_str = self.out_sdu.decode('utf-8')
+                parts = meta_str.split('|', 1)
+                if len(parts) != 2:
+                    logging.error(f"Invalid metadata format: {meta_str}")
+                    sys.exit(1)
+                self.filename, self.extension = parts
+                self.metadata_received = True
+                logging.info(f"Metadata received: filename='{self.filename}', extension='{self.extension}'")
+            else:
+                # Contenu du fichier
+                out_name = f"{self.filename}_received.{self.extension}"
+                try:
+                    with open(out_name, 'wb') as f:
+                        f.write(self.out_sdu)
+                    logging.info(f"File saved: {out_name} ({len(self.out_sdu)} bytes)")
+                except Exception:
+                    logging.error(f"Failed to write file: {out_name}")
+                    traceback.print_exc()
+                # Affichage et sortie
+                print(f"contenu enregistré dans {out_name}")
+                sys.exit(0)
+            # Réinitialise pour SDU suivant
             self.out_sdu.clear()
 
     def _send_status(self):
         new_base = self.expected_sn
-        # ACKs possibles (simplification : tous avant new_base)
         acks = [(new_base - i - 1) % SN_MODULUS for i in range(min(WINDOW_SIZE, new_base))]
         status_pdu = {'type':'STATUS','new_base': new_base, 'acks': acks}
         try:
@@ -97,3 +127,4 @@ if __name__ == '__main__':
             time.sleep(1)
     except KeyboardInterrupt:
         logging.info("Receiver interrupted and exiting")
+        sys.exit(0)

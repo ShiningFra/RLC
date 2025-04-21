@@ -1,6 +1,6 @@
 {
-  "lossRate": 0.5,
-  "duplicationRate": 0.1,
-  "reorderRate": 0.5,
-  "maxDelayMs": 300
+  "lossRate": 0.1,
+  "duplicationRate": 0.05,
+  "reorderRate": 0.2,
+  "maxDelayMs": 200
 }
