@@ -1,16 +1,21 @@
 # RLC
 Implémentons le protocole RLC en AM !!!
 
+---
+
 ## Structure des fichiers
 
 ```
-rlc_am_test/
+RLC/
 │
 ├── sender.py       # Émetteur Python RLC-AM
 ├── receiver.py     # Récepteur Python RLC-AM
 ├── server.js       # Serveur Node.js de simulation
 └── config.json     # Configuration des scénarios de perte/réord.
 ```
+Il y a les `package.json` et `package-lock.json` (entre nous ... n'y touchons pas 🤐) 
+Ah la `LICENSE` c'est pour garder le statut quo (juste une GPL-3.0 license)
+Le `README.md` c'est un petit guide (ha ha 🤐)
 
 ## Comment faire la simulation ?
 
@@ -32,6 +37,7 @@ Pour cela modifier le fichier `config.json`
   "maxDelayMs": 200
 }
 ```
+Allez, soyez pas timides, modifiez comme vous voulez les valeurs (mais ne changez pas la structure 🤐)
 
 ### Lancer le serveur
 
@@ -50,3 +56,10 @@ python3 receiver.py
 ```cmd
 python3 sender.py chemin/vers/ton/fichier
 ```
+
+### Pour arrêter 
+
+Lancer des KeyboardInterrupt sur chacun des terminaux (où vous avez lancé le receiver, le sender, et le server) avec `Crtl + C`
+Dans une prochaine version les programmes s'arrêteront tous seuls (peut être 🤐)
+
+---
