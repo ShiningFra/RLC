@@ -26,10 +26,10 @@ Pour cela modifier le fichier `config.json`
 
 ```json
 {
-  "lossRate": 0.1,         // Probabilité de perte d'un PDU (0.0 à 1.0)
-  "duplicationRate": 0.05, // Probabilité de dupliquer un PDU
-  "reorderRate": 0.1,      // Probabilité de différer un PDU
-  "maxDelayMs": 200        // Délai max en ms pour réordonnancer
+  "lossRate": 0.1,
+  "duplicationRate": 0.05,
+  "reorderRate": 0.1,
+  "maxDelayMs": 200
 }
 ```
 
