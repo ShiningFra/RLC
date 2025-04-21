@@ -66,3 +66,7 @@ Lancer des KeyboardInterrupt sur chacun des terminaux (où vous avez lancé le r
 Dans une prochaine version les programmes s'arrêteront tous seuls (peut être 🤐)
 
 ---
+
+Laissez une étoile si vous avez assez aimé (C'est mignon, non ? 🤐)
+
+---
